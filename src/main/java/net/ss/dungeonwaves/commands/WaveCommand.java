@@ -4,29 +4,19 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
-import io.netty.buffer.Unpooled;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.MenuProvider;
-import net.minecraft.world.entity.monster.Monster;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.network.NetworkHooks;
-import net.ss.dungeonwaves.event.PlayerEventHandler;
 import net.ss.dungeonwaves.event.WaveEventHandler;
 import net.ss.dungeonwaves.manager.DungeonWaveManager;
 import net.ss.dungeonwaves.manager.DungeonWaveSpawner;
 import net.ss.dungeonwaves.manager.MonsterType;
 import net.ss.dungeonwaves.network.SsModVariables;
-import net.ss.dungeonwaves.world.inventory.StarterGearGuiMenu;
 
 @Mod.EventBusSubscriber
 public class WaveCommand {

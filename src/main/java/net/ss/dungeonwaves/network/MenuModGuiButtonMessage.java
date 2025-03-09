@@ -57,6 +57,7 @@ public class MenuModGuiButtonMessage {
             int z = message.z;
             String seedValue = message.seedValue; // ✅ Lấy Seed từ message
 
+            assert entity != null;
             handleButtonAction(entity, buttonID, x, y, z, seedValue);
         });
         context.setPacketHandled(true);
@@ -64,7 +65,7 @@ public class MenuModGuiButtonMessage {
 
     public static void handleButtonAction(Player entity, int buttonID, int x, int y, int z, String seedValue) {
         Level world = entity.level();
-        HashMap guistate = MenuModGuiMenu.guistate;
+        HashMap<String, Object> guistate = MenuModGuiMenu.guistate;
 
         if (!world.hasChunkAt(new BlockPos(x, y, z)))
             return;

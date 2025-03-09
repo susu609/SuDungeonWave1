@@ -14,6 +14,7 @@ import net.minecraft.world.level.Level;
 import net.ss.dungeonwaves.DungeonWavesMod;
 import net.ss.dungeonwaves.network.MenuModGuiButtonMessage;
 import net.ss.dungeonwaves.world.inventory.MenuModGuiMenu;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 
@@ -43,7 +44,7 @@ public class MenuModGuiScreen extends AbstractContainerScreen<MenuModGuiMenu> {
     private static final ResourceLocation texture = new ResourceLocation("dungeon_waves:textures/screens/template_gui.png");
 
     @Override
-    public void render (GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+    public void render (@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         this.renderBackground(guiGraphics);
 
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
@@ -67,6 +68,8 @@ public class MenuModGuiScreen extends AbstractContainerScreen<MenuModGuiMenu> {
     @Override
     public boolean keyPressed (int key, int b, int c) {
         if (key == 256) {
+            assert this.minecraft != null;
+            assert this.minecraft.player != null;
             this.minecraft.player.closeContainer();
             return true;
         }

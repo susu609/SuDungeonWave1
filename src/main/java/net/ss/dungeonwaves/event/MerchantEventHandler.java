@@ -107,40 +107,11 @@ public class MerchantEventHandler {
 
         // Tìm và dịch chuyển thương nhân đến gần người chơi
         for (WanderingMerchantEntity merchant : world.getEntitiesOfClass(WanderingMerchantEntity.class, targetPlayer.getBoundingBox().inflate(64))) {
-            teleportMerchant(merchant, playerPos);
+            merchant.setPos(targetPlayer.getX(), targetPlayer.getY(), targetPlayer.getZ());
             return;
         }
 
         Log.w("🚫 No merchant found, skipping teleport.");
-    }
-
-    private static void teleportMerchant(WanderingMerchantEntity merchant, BlockPos targetPos) {
-        ServerLevel world = (ServerLevel) merchant.level();
-
-        BlockPos safePos = findSafeSpawnPosition(world, targetPos, 3, 6);
-        merchant.setPos(safePos.getX() + 0.5, safePos.getY(), safePos.getZ() + 0.5);
-
-        // Hiệu ứng dịch chuyển
-        world.sendParticles(ParticleTypes.PORTAL, merchant.getX(), merchant.getY() + 1, merchant.getZ(), 30, 0.5, 1, 0.5, 0.2);
-        world.playSound(null, merchant.getX(), merchant.getY(), merchant.getZ(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.HOSTILE, 1.0F, 1.0F);
-
-        Log.d("✨ Merchant teleported near " + targetPos);
-    }
-
-    private static BlockPos findSafeSpawnPosition(ServerLevel world, BlockPos center, int minRadius, int maxRadius) {
-        for (int i = 0; i < 10; i++) { // Thử tìm tối đa 10 lần
-            int dx = world.getRandom().nextInt(maxRadius * 2) - maxRadius;
-            int dz = world.getRandom().nextInt(maxRadius * 2) - maxRadius;
-            BlockPos pos = center.offset(dx, 0, dz);
-
-            int y = world.getHeightmapPos(Heightmap.Types.WORLD_SURFACE, pos).getY();
-            BlockPos spawnPos = new BlockPos(pos.getX(), y, pos.getZ());
-
-            if (world.getBlockState(spawnPos.below()).isSolid()) {
-                return spawnPos; // Trả về vị trí hợp lệ
-            }
-        }
-        return center; // Nếu không tìm được thì giữ nguyên vị trí cũ
     }
 
 }

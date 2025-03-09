@@ -1,13 +1,20 @@
 package net.ss.dungeonwaves.item;
 
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Multimap;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -19,13 +26,32 @@ public class ModWeaponItem extends ModItem {
     private final WeaponType weaponType;
     private final int attackDamage;
     private final float attackSpeed;
+    private final double attackRange;
+    private final Multimap<Attribute, AttributeModifier> defaultModifiers;
 
-    public ModWeaponItem (WeaponType type, int attackDamage, float attackSpeed, Properties properties, int emeraldCost) {
+    public ModWeaponItem (WeaponType type, int baseDamage, float baseSpeed, Properties properties, int emeraldCost, double range) {
         super(properties, emeraldCost);
         this.weaponType = type;
-        this.attackDamage = attackDamage;
-        this.attackSpeed = attackSpeed;
+        this.attackDamage = baseDamage;
+        this.attackSpeed = baseSpeed;
+        this.attackRange = range;
+
+        // 📌 Sử dụng AttributeModifier giống SwordItem
+        ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
+        builder.put(Attributes.ATTACK_DAMAGE, new AttributeModifier(BASE_ATTACK_DAMAGE_UUID, "Weapon modifier", baseDamage, AttributeModifier.Operation.ADDITION));
+        builder.put(Attributes.ATTACK_SPEED, new AttributeModifier(BASE_ATTACK_SPEED_UUID, "Weapon modifier", baseSpeed, AttributeModifier.Operation.ADDITION));
+        this.defaultModifiers = builder.build();
     }
+
+    @Override
+    public @NotNull Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers (EquipmentSlot slot) {
+        ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
+        builder.put(Attributes.ATTACK_DAMAGE, new AttributeModifier(BASE_ATTACK_DAMAGE_UUID, "Weapon modifier", attackDamage, AttributeModifier.Operation.ADDITION));
+        builder.put(Attributes.ATTACK_SPEED, new AttributeModifier(BASE_ATTACK_SPEED_UUID, "Weapon modifier", attackSpeed - 4.0, AttributeModifier.Operation.ADDITION)); // ⚡ Sửa đổi attackSpeed
+
+        return slot == EquipmentSlot.MAINHAND ? builder.build() : super.getDefaultAttributeModifiers(slot);
+    }
+
 
     public int getAttackDamage () {
         return attackDamage;
@@ -39,19 +65,18 @@ public class ModWeaponItem extends ModItem {
         return weaponType;
     }
 
-    @Override
-    public boolean hurtEnemy (ItemStack stack, LivingEntity target, LivingEntity attacker) {
-        if (attacker instanceof Player player) {
-            if (player.getAttackStrengthScale(0.5f) == 1.0f) { // Full cooldown (100% lực đánh)
-                if (player.getAttackStrengthScale(0.5f) == 1.0f) { // Full cooldown (100% lực đánh)
-                    float damage = getAttackDamage(); // ✅ Sử dụng giá trị từ getAttackDamage()
-                    target.hurt(player.damageSources().playerAttack(player), damage);
-                }
+    public double getAttackRange () {
+        return attackRange;
+    }
 
-                float pitch = player.getXRot(); // Lấy góc nhìn dọc
-                double dx = target.getX() - player.getX();
-                double dz = target.getZ() - player.getZ();
-                double distance = Math.sqrt(dx * dx + dz * dz);
+    @Override
+    public boolean hurtEnemy (@NotNull ItemStack stack, @NotNull LivingEntity target, @NotNull LivingEntity attacker) {
+        if (attacker instanceof Player player) {
+            float attackStrength = player.getAttackStrengthScale(0.5f); // Tính toán cooldown đánh
+
+            if (attackStrength >= 1.0f) { // Đảm bảo full cooldown
+                float damage = getAttackDamage();
+                target.hurt(player.damageSources().playerAttack(player), damage);
 
                 switch (weaponType) {
                     case SWORD:
@@ -61,26 +86,31 @@ public class ModWeaponItem extends ModItem {
                         break;
 
                     case AXE:
+                        if (attackStrength >= 0.8f) { // Giảm sát thương nếu không full cooldown
+                            createShockwave(player);
+                        }
+                        break;
+
                     case PICKAXE:
-                        if (pitch <= -45.0F) {
-                            float slamDamage = (pitch <= -60.0F) ? attackDamage * 2.0F : attackDamage * 1.75F;
-                            target.hurt(player.damageSources().playerAttack(player), slamDamage);
-                            if (distance > 0.0) {
-                                target.knockback(1.5F, dx / distance, dz / distance);
-                            }
-                            if (player.onGround()) {
-                                createShockwave(player);
-                            }
+                        if (player.fallDistance > 0.5F) { // Cúp tăng sát thương khi nhảy
+                            target.hurt(player.damageSources().playerAttack(player), damage * 1.5f);
                         }
                         break;
 
                     case SHOVEL:
-                        target.knockback(2.0f, dx / distance, dz / distance);
+                        if (attackStrength >= 0.7f) {
+                            target.knockback(0.5F, -Mth.sin(player.getYRot() * 0.017453292F), Mth.cos(player.getYRot() * 0.017453292F));
+                        }
                         break;
 
                     case HOE:
+                        // Cuốc không có hiệu ứng đặc biệt, nhưng tốc độ đánh nhanh
                         break;
                 }
+
+                // 📌 Âm thanh khi tấn công
+                player.level().playSound(null, player.getX(), player.getY(), player.getZ(),
+                        SoundEvents.PLAYER_ATTACK_STRONG, SoundSource.PLAYERS, 1.0F, 1.0F);
             }
         }
         return super.hurtEnemy(stack, target, attacker);
@@ -105,7 +135,7 @@ public class ModWeaponItem extends ModItem {
         // Tấn công tất cả kẻ địch xung quanh
         for (LivingEntity entity : nearbyEntities) {
             entity.hurt(player.damageSources().playerAttack(player), sweepDamage);
-            entity.knockback(0.4F, Mth.sin(player.getYRot() * 0.017453292F), -Mth.cos(player.getYRot() * 0.017453292F));
+            entity.knockback(0.1F, Mth.sin(player.getYRot() * 0.017453292F), -Mth.cos(player.getYRot() * 0.017453292F));
         }
 
         // Hiệu ứng chém quét

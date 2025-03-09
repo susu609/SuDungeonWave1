@@ -44,6 +44,7 @@ public class DungeonWaveManager {
         Log.d("🧟 Reset enemyCount về 0");
 
         DungeonWaveSpawner.spawnWave(data.wave, world);
+        DungeonWaveEffects.playWaveStartEffect((ServerLevel) world, data.wave);
     }
 
     public static void endWave(Level world) {

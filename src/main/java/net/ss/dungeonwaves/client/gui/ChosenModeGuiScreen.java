@@ -17,11 +17,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 public class ChosenModeGuiScreen extends AbstractContainerScreen<ChosenModeGuiMenu> {
 
     private final static HashMap<String, Object> guistate = ChosenModeGuiMenu.guistate;
-
     private final Level world;
     private final int x, y, z;
     private final Player entity;
@@ -71,6 +71,7 @@ public class ChosenModeGuiScreen extends AbstractContainerScreen<ChosenModeGuiMe
     @Override
     public boolean keyPressed (int key, int b, int c) {
         if (key == 256) {
+            assert this.minecraft != null;
             assert this.minecraft.player != null;
             this.minecraft.player.closeContainer();
             return true;
@@ -80,7 +81,7 @@ public class ChosenModeGuiScreen extends AbstractContainerScreen<ChosenModeGuiMe
     }
 
     @Override
-    protected void renderLabels (GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    protected void renderLabels (@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY) {
         Component question = Component.translatable("gui.ss.chosen_mode_gui.label_do_you_want_to_play_the_mods_ga");
         List<FormattedCharSequence> wrappedText = this.font.split(question, this.imageWidth - 20); // Giới hạn chiều rộng chữ
 
@@ -104,10 +105,8 @@ public class ChosenModeGuiScreen extends AbstractContainerScreen<ChosenModeGuiMe
 
         // Nút Yes (Dịch chuyển)
         button_yes = Button.builder(Component.translatable("gui.ss.chosen_mode_gui.button_yes"), e -> {
-            if (true) {
-                DungeonWavesMod.PACKET_HANDLER.sendToServer(new ChosenModeGuiButtonMessage(0, x, y, z));
-                ChosenModeGuiButtonMessage.handleButtonAction(entity, 0, x, y, z);
-            }
+            DungeonWavesMod.PACKET_HANDLER.sendToServer(new ChosenModeGuiButtonMessage(0, x, y, z));
+            ChosenModeGuiButtonMessage.handleButtonAction(entity, 0, x, y, z);
 
         }).bounds(centerX - buttonWidth - (buttonSpacing / 2), buttonY, buttonWidth, buttonHeight).build();
         guistate.put("button:button_yes", button_yes);
@@ -115,10 +114,8 @@ public class ChosenModeGuiScreen extends AbstractContainerScreen<ChosenModeGuiMe
 
         // Nút No (Đóng GUI)
         button_no = Button.builder(Component.translatable("gui.ss.chosen_mode_gui.button_no"), e -> {
-            if (true) {
-                DungeonWavesMod.PACKET_HANDLER.sendToServer(new ChosenModeGuiButtonMessage(1, x, y, z));
-                ChosenModeGuiButtonMessage.handleButtonAction(entity, 1, x, y, z);
-            }
+            DungeonWavesMod.PACKET_HANDLER.sendToServer(new ChosenModeGuiButtonMessage(1, x, y, z));
+            ChosenModeGuiButtonMessage.handleButtonAction(entity, 1, x, y, z);
         }).bounds(centerX + (buttonSpacing / 2), buttonY, buttonWidth, buttonHeight).build();
         guistate.put("button:button_no", button_no);
         this.addRenderableWidget(button_no);

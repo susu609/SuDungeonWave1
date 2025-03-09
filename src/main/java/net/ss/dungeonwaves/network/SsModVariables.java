@@ -94,6 +94,7 @@ public class SsModVariables {
         public boolean inCombat = false;
         public int enemyCount = 0;
         public boolean merchantGone;
+        public boolean isRestarting = false;
 
         // ✅ Thêm biến theo dõi nhóm đã chọn
         public boolean[] selectedGroups = new boolean[3]; // [0] = vũ khí, [1] = thuốc, [2] = relics
@@ -112,6 +113,7 @@ public class SsModVariables {
             inCombat = nbt.getBoolean("inCombat");
             enemyCount = nbt.getInt("enemyCount");
             merchantGone = nbt.getBoolean("merchantGone");
+            isRestarting = nbt.getBoolean("isRestarting");
 
             // ✅ Đọc dữ liệu selectedGroups từ NBT
             for (int i = 0; i < 3; i++) {
@@ -128,6 +130,7 @@ public class SsModVariables {
             nbt.putBoolean("inCombat", inCombat);
             nbt.putInt("enemyCount", enemyCount);
             nbt.putBoolean("merchantGone", merchantGone);
+            nbt.putBoolean("isRestarting", isRestarting);
 
             // ✅ Lưu dữ liệu selectedGroups vào NBT
             for (int i = 0; i < 3; i++) {

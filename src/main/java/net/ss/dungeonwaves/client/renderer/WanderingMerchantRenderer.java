@@ -29,6 +29,6 @@ public class WanderingMerchantRenderer extends MobRenderer<WanderingMerchantEnti
 
     protected void scale (@NotNull WanderingMerchantEntity p_116375_, PoseStack p_116376_, float p_116377_) {
         float $$3 = 0.9375F;
-        p_116376_.scale(0.9375F, 0.9375F, 0.9375F);
+        p_116376_.scale($$3, $$3, $$3);
     }
 }

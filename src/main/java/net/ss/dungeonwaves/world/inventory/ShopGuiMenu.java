@@ -2,7 +2,6 @@ package net.ss.dungeonwaves.world.inventory;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
@@ -86,7 +85,7 @@ public class ShopGuiMenu extends AbstractContainerMenu implements Supplier<Map<I
             private int y = ShopGuiMenu.this.y;
 
             @Override
-            public boolean mayPlace (ItemStack stack) {
+            public boolean mayPlace (@NotNull ItemStack stack) {
                 return false;
             }
         }));
@@ -96,7 +95,7 @@ public class ShopGuiMenu extends AbstractContainerMenu implements Supplier<Map<I
             private int y = ShopGuiMenu.this.y;
 
             @Override
-            public boolean mayPlace (ItemStack stack) {
+            public boolean mayPlace (@NotNull ItemStack stack) {
                 return false;
             }
         }));
@@ -188,7 +187,7 @@ public class ShopGuiMenu extends AbstractContainerMenu implements Supplier<Map<I
     }
 
     @Override
-    public boolean stillValid (Player player) {
+    public boolean stillValid (@NotNull Player player) {
         if (this.bound) {
             if (this.boundItemMatcher != null)
                 return this.boundItemMatcher.get();
@@ -201,7 +200,7 @@ public class ShopGuiMenu extends AbstractContainerMenu implements Supplier<Map<I
     }
 
     @Override
-    public ItemStack quickMoveStack (Player playerIn, int index) {
+    public @NotNull ItemStack quickMoveStack (@NotNull Player playerIn, int index) {
         ItemStack itemstack = ItemStack.EMPTY;
         Slot slot = (Slot) this.slots.get(index);
         if (slot != null && slot.hasItem()) {
@@ -233,7 +232,7 @@ public class ShopGuiMenu extends AbstractContainerMenu implements Supplier<Map<I
     }
 
     @Override
-    protected boolean moveItemStackTo (ItemStack p_38904_, int p_38905_, int p_38906_, boolean p_38907_) {
+    protected boolean moveItemStackTo (@NotNull ItemStack p_38904_, int p_38905_, int p_38906_, boolean p_38907_) {
         boolean flag = false;
         int i = p_38905_;
         if (p_38907_) {

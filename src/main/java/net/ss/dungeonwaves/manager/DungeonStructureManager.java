@@ -10,7 +10,7 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
 
 public class DungeonStructureManager {
     public static void generateDungeon (ServerLevel world) {
-        StructureTemplateManager structureManager = world.getStructureManager();
+//        StructureTemplateManager structureManager = world.getStructureManager();
 
         // Tọa độ gốc để căn giữa vào (0,0,0) đến (1,0,1)
         BlockPos startPos = new BlockPos(-32, 0, -32);

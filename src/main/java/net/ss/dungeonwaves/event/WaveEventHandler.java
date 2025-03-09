@@ -19,7 +19,6 @@ import net.ss.dungeonwaves.network.SsModVariables;
 import net.ss.dungeonwaves.util.GuiOpener;
 import net.ss.dungeonwaves.util.Log;
 
-import java.util.Comparator;
 import java.util.List;
 
 @Mod.EventBusSubscriber
@@ -50,46 +49,49 @@ public class WaveEventHandler {
     }
 
     public static void restartGame (ServerLevel world) {
-        // Đặt lại biến toàn cục
+        // 🔄 Đánh dấu trạng thái đang restart
         SsModVariables.MapVariables data = SsModVariables.MapVariables.get(world);
+        data.isRestarting = true;
+        data.syncData(world);
+
+        Log.d("🔄 Restarting Dungeon... Resetting everything!");
+
+        // Đặt lại biến toàn cục
         data.wave = 0;
         data.inCombat = false;
         data.summonPoints = 100.0;
         data.merchantGone = false;
         data.syncData(world);
 
-        // Xóa tất cả quái vật trong thế giới
-        {
-            final Vec3 _center = new Vec3(0.5, 1, 0.5);
-            List<Entity> _entfound = world.getEntitiesOfClass(Entity.class, new AABB(_center, _center).inflate(64 / 2d), e -> true).stream().sorted(Comparator.comparingDouble(_entcnd -> _entcnd.distanceToSqr(_center.x, _center.y, _center.z))
-            ).toList();
-            for (Entity entityiterator : _entfound) {
-                if (!entityiterator.level().isClientSide())
-                    entityiterator.discard();
-            }
+        // Xóa tất cả thực thể
+        final Vec3 _center = new Vec3(0.5, 1, 0.5);
+        List<Entity> _entities = world.getEntitiesOfClass(Entity.class, new AABB(_center, _center).inflate(64), e -> true);
+        for (Entity entity : _entities) {
+            if (!entity.level().isClientSide()) entity.discard();
         }
 
-
-        // Đặt lại tất cả người chơi trong dungeon
+        // Đặt lại tất cả người chơi
         for (ServerPlayer player : world.players()) {
             player.teleportTo(world, 0, 5, 0, 0.0F, 0.0F); // Đưa về điểm spawn
             player.getInventory().clearContent(); // Xóa đồ của người chơi
         }
 
-        // Tái tạo thương nhân lang thang
+        // Triệu hồi lại thương nhân nếu chưa biến mất
         if (!data.merchantGone) {
-            Entity entityToSpawn = SsModEntities.WANDERING_MERCHANT.get().spawn(world, BlockPos.containing(2, 3, 2), MobSpawnType.MOB_SUMMONED);
-            if (entityToSpawn != null) {
-                entityToSpawn.setYRot(world.getRandom().nextFloat() * 360F);
-            }
+            Entity merchant = SsModEntities.WANDERING_MERCHANT.get().spawn(world, BlockPos.containing(2, 3, 2), MobSpawnType.MOB_SUMMONED);
+            if (merchant != null) merchant.setYRot(world.getRandom().nextFloat() * 360F);
         }
 
-        // Gọi menu chọn chế độ chơi
+        // 🔄 Hoàn thành restart, bỏ cờ isRestarting
+        data.isRestarting = false;
+        data.syncData(world);
+
+        // Hiển thị GUI Chế Độ Chơi cho người chơi
         for (ServerPlayer player : world.players()) {
             GuiOpener.openChosenModeGui(player);
         }
-
-        Log.d("🔄 Dungeon has been fully reset!");
+        Log.d("✅ Dungeon reset hoàn tất!");
     }
+
 }
 

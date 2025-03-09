@@ -56,6 +56,7 @@ public class ChosenModeGuiButtonMessage {
             int y = message.y;
             int z = message.z;
 
+            assert entity != null;
             handleButtonAction(entity, buttonID, x, y, z);
         });
         context.setPacketHandled(true);
