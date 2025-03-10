@@ -15,8 +15,15 @@ import java.util.Random;
 
 public class DungeonWaveManager {
 
-    public static void startNextWave (Level world) {
+    public static void startNextWave(Level world) {
         SsModVariables.MapVariables data = SsModVariables.MapVariables.get(world);
+
+        // 🚨 Ngăn chặn bắt đầu wave nếu đang restart
+        if (data.isRestarting) {
+            Log.w("🚫 Restarting... Skipping wave start.");
+            return;
+        }
+
         Random random = DungeonRandom.getRNG("wave_" + data.wave);
         int newSummonPoints = (int) (data.summonPoints + (data.wave * 10) + 20 + random.nextInt(10));
         if (data.inCombat) {
@@ -33,11 +40,7 @@ public class DungeonWaveManager {
 
         // ✅ Cấp lại summonPoints theo wave hiện tại
         int previousSummonPoints = (int) data.summonPoints;
-
-
-        // ✅ Bắt đầu với 100 điểm và mỗi wave tăng thêm 20 điểm
         data.summonPoints = newSummonPoints;
-
         data.syncData(world);
 
         Log.d("🔄 SummonPoints được cấp lại: " + previousSummonPoints + " ➝ " + newSummonPoints);
@@ -54,6 +57,13 @@ public class DungeonWaveManager {
         }
 
         SsModVariables.MapVariables data = SsModVariables.MapVariables.get(serverWorld);
+
+        // 🚨 Ngăn chặn kết thúc wave nếu đang restart
+        if (data.isRestarting) {
+            Log.w("🚫 Restarting... Skipping wave end.");
+            return;
+        }
+
         MinecraftForge.EVENT_BUS.post(new WaveEvent.End(serverWorld, data.wave));
 
         if (!data.inCombat) {
@@ -74,7 +84,7 @@ public class DungeonWaveManager {
         // ✅ Tăng summonPoints theo wave
         int previousSummonPoints = (int) data.summonPoints;
         int wave = data.wave;
-        int newSummonPoints = previousSummonPoints + (wave * 5) + 10; // ✅ Công thức mới
+        int newSummonPoints = previousSummonPoints + (wave * 5) + 10;
         data.summonPoints = newSummonPoints;
         data.syncData(serverWorld);
 

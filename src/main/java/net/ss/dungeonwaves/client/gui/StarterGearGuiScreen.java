@@ -33,7 +33,7 @@ public class StarterGearGuiScreen extends AbstractContainerScreen<StarterGearGui
         this.imageHeight = 166;
     }
 
-    private static final ResourceLocation texture = new ResourceLocation("dungeon_waves:textures/screens/starter_gear_gui.png");
+    private static final ResourceLocation texture = new ResourceLocation("dungeon_waves:textures/screens/template_gui.png");
 
     @Override
     public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
@@ -42,11 +42,14 @@ public class StarterGearGuiScreen extends AbstractContainerScreen<StarterGearGui
     }
 
     private void updateSlotState() {
+        System.out.println("📌 Updating slot state");
         for (int i = 0; i < 9; i++) {
-            if (this.menu.get().get(i).hasItem()) {
-                if (i < 3) disableOtherSlots(0, 3);
-                else if (i < 6) disableOtherSlots(3, 6);
-                else disableOtherSlots(6, 9);
+            if (this.menu.get().containsKey(i) && this.menu.get().get(i) != null) {
+                if (this.menu.get().get(i).hasItem()) {
+                    if (i < 3) disableOtherSlots(0, 3);
+                    else if (i < 6) disableOtherSlots(3, 6);
+                    else disableOtherSlots(6, 9);
+                }
             }
         }
     }

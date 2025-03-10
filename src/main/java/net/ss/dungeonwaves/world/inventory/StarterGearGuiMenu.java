@@ -17,10 +17,12 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import net.ss.dungeonwaves.init.SsModMenus;
-import org.jetbrains.annotations.NotNull;
+import net.ss.dungeonwaves.util.DungeonRandom;
+import net.ss.dungeonwaves.util.ItemRandomizer;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.function.Supplier;
 
 public class StarterGearGuiMenu extends AbstractContainerMenu implements Supplier<Map<Integer, Slot>> {
@@ -35,6 +37,8 @@ public class StarterGearGuiMenu extends AbstractContainerMenu implements Supplie
     private Supplier<Boolean> boundItemMatcher = null;
     private Entity boundEntity = null;
     private BlockEntity boundBlockEntity = null;
+    private final ItemRandomizer itemRandomizer = new ItemRandomizer();
+    private final boolean[] selectedGroups = {false, false, false}; // [0] = vũ khí, [1] = thuốc, [2] = cổ vật
 
     public StarterGearGuiMenu(int id, Inventory inv, FriendlyByteBuf extraData) {
         super(SsModMenus.STARTER_GEAR_GUI.get(), id);
@@ -170,53 +174,48 @@ public class StarterGearGuiMenu extends AbstractContainerMenu implements Supplie
                 this.addSlot(new Slot(inv, sj + (si + 1) * 9, 0 + 8 + sj * 18, 0 + 84 + si * 18));
         for (int si = 0; si < 9; ++si)
             this.addSlot(new Slot(inv, si, 0 + 8 + si * 18, 0 + 142));
+
+
+
+        System.out.println("📌 StarterGearGuiMenu Initialized");
+
+        Random rng = DungeonRandom.getRNG("gear_selection");
+
+        // ✅ Đặt vật phẩm vào các slot theo seed RNG
+        for (int i = 0; i < 3; i++) {
+            internal.insertItem(i, itemRandomizer.getRandomTool(rng), false); // Vũ khí
+            internal.insertItem(i + 3, itemRandomizer.getRandomDrinkablePotion(rng), false); // Thuốc
+            internal.insertItem(i + 6, itemRandomizer.getRandomRelic(rng), false); // Cổ vật
+        }
+
+        // ✅ Thêm các slot vào GUI
+        for (int i = 0; i < 9; i++) {
+            this.customSlots.put(i, this.addSlot(new SlotItemHandler(internal, i, 58 + (i % 3) * 22, 13 + (i / 3) * 22)));
+        }
+
+        // ✅ Thêm Inventory và Hotbar của người chơi
+        for (int row = 0; row < 3; ++row) {
+            for (int col = 0; col < 9; ++col) {
+                this.addSlot(new Slot(inv, col + (row + 1) * 9, 8 + col * 18, 84 + row * 18));
+            }
+        }
+
+        for (int col = 0; col < 9; ++col) {
+            this.addSlot(new Slot(inv, col, 8 + col * 18, 142));
+        }
     }
 
     @Override
-    public boolean stillValid(@NotNull Player player) {
-        return this.access.evaluate((world, pos) -> world.getBlockState(pos).isAir(), true);
-    }
-
-    private void lockOrRemoveItems() {
-        boolean weaponSelected = false;
-        boolean potionSelected = false;
-        boolean relicSelected = false;
-
-        // Kiểm tra xem người chơi đã chọn item nào chưa
-        for (int i = 0; i < 9; i++) {
-            if (!internal.getStackInSlot(i).isEmpty()) {
-                if (i < 3) weaponSelected = true;
-                else if (i < 6) potionSelected = true;
-                else relicSelected = true;
-            }
+    public boolean stillValid (Player player) {
+        if (this.bound) {
+            if (this.boundItemMatcher != null)
+                return this.boundItemMatcher.get();
+            else if (this.boundBlockEntity != null)
+                return AbstractContainerMenu.stillValid(this.access, player, this.boundBlockEntity.getBlockState().getBlock());
+            else if (this.boundEntity != null)
+                return this.boundEntity.isAlive();
         }
-
-        // Nếu một item đã được chọn, xóa các item còn lại trong hàng đó
-        for (int i = 0; i < 3; i++) {
-            if (weaponSelected && i != getSelectedSlot(0, 3)) {
-                internal.extractItem(i, internal.getStackInSlot(i).getCount(), false); // ✅ Xóa item
-            }
-        }
-        for (int i = 3; i < 6; i++) {
-            if (potionSelected && i != getSelectedSlot(3, 6)) {
-                internal.extractItem(i, internal.getStackInSlot(i).getCount(), false);
-            }
-        }
-        for (int i = 6; i < 9; i++) {
-            if (relicSelected && i != getSelectedSlot(6, 9)) {
-                internal.extractItem(i, internal.getStackInSlot(i).getCount(), false);
-            }
-        }
-    }
-
-    // 📌 Tìm slot đã được chọn trong một hàng (nếu có)
-    private int getSelectedSlot(int start, int end) {
-        for (int i = start; i < end; i++) {
-            if (!internal.getStackInSlot(i).isEmpty()) {
-                return i;
-            }
-        }
-        return -1; // Không có slot nào được chọn
+        return true;
     }
 
     @Override
@@ -228,12 +227,34 @@ public class StarterGearGuiMenu extends AbstractContainerMenu implements Supplie
             ItemStack selectedStack = slot.getItem();
             itemstack = selectedStack.copy();
 
-            // 🔥 Gọi `lockOrRemoveItems()` để cập nhật GUI khi người chơi chọn item
-            lockOrRemoveItems();
+            System.out.println("📌 Player selected item from slot " + index);
+
+            // ✅ Xác định nhóm vật phẩm của slot
+            int groupIndex = index / 3; // Hàng 1 = 0, Hàng 2 = 1, Hàng 3 = 2
+
+            // ✅ Kiểm tra xem người chơi đã chọn vật phẩm trong nhóm này chưa
+            if (selectedGroups[groupIndex]) {
+                System.out.println("❌ Player already selected an item from this category!");
+                return ItemStack.EMPTY; // Ngăn chọn nhiều vật phẩm cùng loại
+            }
+
+            // ✅ Đánh dấu loại vật phẩm đã được chọn
+            selectedGroups[groupIndex] = true;
+            removeItemsInRow(groupIndex * 3, (groupIndex + 1) * 3, index);
 
             slot.setChanged();
         }
         return itemstack;
+    }
+
+    // 📌 Xóa tất cả item trong hàng trừ slot đã chọn
+    private void removeItemsInRow(int start, int end, int selectedSlot) {
+        for (int i = start; i < end; i++) {
+            if (i != selectedSlot) {
+                System.out.println("🛑 Removing item from slot " + i);
+                internal.extractItem(i, internal.getStackInSlot(i).getCount(), false);
+            }
+        }
     }
 
     @Override

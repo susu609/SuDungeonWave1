@@ -1,6 +1,7 @@
 package net.ss.dungeonwaves.util;
 
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.ss.dungeonwaves.init.SsModItems;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.alchemy.PotionUtils;
@@ -35,21 +36,17 @@ public class ItemRandomizer {
             new ItemStack(SsModItems.WOODEN_PICKAXE.get())
     );
 
-    public ItemStack getRandomDrinkablePotion() {
-        return PotionUtils.setPotion(new ItemStack(net.minecraft.world.item.Items.POTION),
-                DRINKABLE_POTIONS.get(random.nextInt(DRINKABLE_POTIONS.size())));
+    public ItemStack getRandomTool(Random rng) {
+        return TOOLS.get(rng.nextInt(TOOLS.size()));
     }
 
-    public ItemStack getRandomThrowablePotion() {
-        return PotionUtils.setPotion(new ItemStack(net.minecraft.world.item.Items.SPLASH_POTION),
-                DRINKABLE_POTIONS.get(random.nextInt(DRINKABLE_POTIONS.size())));
+    public ItemStack getRandomDrinkablePotion(Random rng) {
+        return PotionUtils.setPotion(new ItemStack(Items.POTION),
+                DRINKABLE_POTIONS.get(rng.nextInt(DRINKABLE_POTIONS.size())));
     }
 
-    public ItemStack getRandomTool() {
-        return TOOLS.get(random.nextInt(TOOLS.size()));
+    public ItemStack getRandomRelic(Random rng) {
+        return RELICS.get(rng.nextInt(RELICS.size()));
     }
 
-    public ItemStack getRandomRelic() {
-        return RELICS.get(random.nextInt(RELICS.size()));
-    }
 }

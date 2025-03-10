@@ -44,11 +44,11 @@ public class WaveEventHandler {
 
         if (newEnemyCount == 0) {
             DungeonWaveManager.endWave(world);
-            System.out.println("✅ [DEBUG] Tất cả quái đã bị tiêu diệt! Kết thúc wave...");
+            Log.d("✅ All monsters have been defeated! Ending wave...");
         }
     }
 
-    public static void restartGame (ServerLevel world) {
+    public static void restartGame(ServerLevel world) {
         // 🔄 Đánh dấu trạng thái đang restart
         SsModVariables.MapVariables data = SsModVariables.MapVariables.get(world);
         data.isRestarting = true;
@@ -88,9 +88,9 @@ public class WaveEventHandler {
 
         // Hiển thị GUI Chế Độ Chơi cho người chơi
         for (ServerPlayer player : world.players()) {
-            GuiOpener.openChosenModeGui(player);
+            GuiOpener.openMenuModGui(player);
         }
-        Log.d("✅ Dungeon reset hoàn tất!");
+        Log.d("✅ Dungeon reset done!");
     }
 
 }

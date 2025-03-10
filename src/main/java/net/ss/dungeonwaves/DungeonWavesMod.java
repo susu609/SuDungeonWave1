@@ -77,13 +77,10 @@ public class DungeonWavesMod {
 
 	@SubscribeEvent
 	public void tick(TickEvent.ServerTickEvent event) {
-		LOGGER.debug("Server tick event triggered.");
 		if (event.phase == TickEvent.Phase.END) {
 			taskQueue.forEach((name, task) -> {
-				LOGGER.debug("Processing task: " + name + " | Remaining ticks: " + task.ticksRemaining);
 				task.ticksRemaining--;
 				if (task.ticksRemaining <= 0) {
-					LOGGER.info("Executing task: " + name);
 					task.action.run();
 					taskQueue.remove(name);
 				}
